@@ -1,0 +1,718 @@
+openapi: 3.1.0
+
+info:
+title: SensorHub API
+version: 1.0.0
+summary: Sample API specification for SensorHub Cloud.
+description: |
+The SensorHub API is a fictional REST API for retrieving sensor readings,
+checking device status, and connecting SensorHub Cloud data to other systems.
+
+```
+This OpenAPI file is part of a fictional documentation portfolio project.
+It does not describe a real product or service.
+```
+
+servers:
+
+* url: https://api.sensorhub.example.com/v1
+  description: Production API server
+
+security:
+
+* bearerAuth: []
+
+tags:
+
+* name: Readings
+  description: Retrieve sensor reading data.
+* name: Sensors
+  description: Retrieve sensor details.
+* name: Gateways
+  description: Retrieve gateway details.
+* name: Locations
+  description: Retrieve location details.
+
+paths:
+/readings:
+get:
+tags:
+- Readings
+summary: Retrieve sensor readings
+description: |
+Retrieves sensor readings from SensorHub Cloud.
+
+```
+    Use query parameters to filter readings by sensor, gateway, location,
+    sensor type, or date range.
+  operationId: listReadings
+  parameters:
+    - name: sensorId
+      in: query
+      required: false
+      description: Returns readings from one sensor.
+      schema:
+        type: string
+        example: sns_2481
+    - name: gatewayId
+      in: query
+      required: false
+      description: Returns readings from sensors connected through one gateway.
+      schema:
+        type: string
+        example: gtw_1042
+    - name: locationId
+      in: query
+      required: false
+      description: Returns readings from one location.
+      schema:
+        type: string
+        example: loc_3001
+    - name: type
+      in: query
+      required: false
+      description: Returns readings by sensor type.
+      schema:
+        $ref: "#/components/schemas/ReadingType"
+    - name: startTime
+      in: query
+      required: false
+      description: Returns readings after this date and time. Use UTC time.
+      schema:
+        type: string
+        format: date-time
+        example: "2026-06-12T00:00:00Z"
+    - name: endTime
+      in: query
+      required: false
+      description: Returns readings before this date and time. Use UTC time.
+      schema:
+        type: string
+        format: date-time
+        example: "2026-06-13T00:00:00Z"
+    - name: limit
+      in: query
+      required: false
+      description: Sets the number of readings to return.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+        example: 10
+    - name: cursor
+      in: query
+      required: false
+      description: Gets the next page of readings.
+      schema:
+        type: string
+        example: eyJwYWdlIjoyfQ
+  responses:
+    "200":
+      description: Readings were returned successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ReadingsResponse"
+          examples:
+            latestReadings:
+              summary: Latest readings
+              value:
+                data:
+                  - readingId: rdg_1001
+                    sensorId: sns_2481
+                    gatewayId: gtw_1042
+                    locationId: loc_3001
+                    type: temperature
+                    value: 38.7
+                    unit: F
+                    timestamp: "2026-06-12T15:42:00Z"
+                    batteryPercent: 91
+                    signalStrength: -67
+                  - readingId: rdg_1002
+                    sensorId: sns_2482
+                    gatewayId: gtw_1042
+                    locationId: loc_3001
+                    type: humidity
+                    value: 42.4
+                    unit: "%"
+                    timestamp: "2026-06-12T15:41:30Z"
+                    batteryPercent: 88
+                    signalStrength: -70
+                pagination:
+                  limit: 10
+                  nextCursor: eyJwYWdlIjoyfQ
+    "400":
+      $ref: "#/components/responses/BadRequest"
+    "401":
+      $ref: "#/components/responses/Unauthorized"
+    "403":
+      $ref: "#/components/responses/Forbidden"
+    "404":
+      $ref: "#/components/responses/NotFound"
+    "429":
+      $ref: "#/components/responses/TooManyRequests"
+    "500":
+      $ref: "#/components/responses/InternalServerError"
+```
+
+/sensors:
+get:
+tags:
+- Sensors
+summary: Retrieve sensors
+description: Retrieves sensors assigned to the account.
+operationId: listSensors
+parameters:
+- name: locationId
+in: query
+required: false
+description: Returns sensors from one location.
+schema:
+type: string
+example: loc_3001
+- name: type
+in: query
+required: false
+description: Returns sensors by sensor type.
+schema:
+$ref: "#/components/schemas/ReadingType"
+responses:
+"200":
+description: Sensors were returned successfully.
+content:
+application/json:
+schema:
+$ref: "#/components/schemas/SensorsResponse"
+"401":
+$ref: "#/components/responses/Unauthorized"
+"403":
+$ref: "#/components/responses/Forbidden"
+"500":
+$ref: "#/components/responses/InternalServerError"
+
+/sensors/{sensorId}:
+get:
+tags:
+- Sensors
+summary: Retrieve one sensor
+description: Retrieves details for one sensor.
+operationId: getSensor
+parameters:
+- name: sensorId
+in: path
+required: true
+description: The unique ID for the sensor.
+schema:
+type: string
+example: sns_2481
+responses:
+"200":
+description: Sensor details were returned successfully.
+content:
+application/json:
+schema:
+$ref: "#/components/schemas/Sensor"
+"401":
+$ref: "#/components/responses/Unauthorized"
+"403":
+$ref: "#/components/responses/Forbidden"
+"404":
+$ref: "#/components/responses/NotFound"
+"500":
+$ref: "#/components/responses/InternalServerError"
+
+/gateways:
+get:
+tags:
+- Gateways
+summary: Retrieve gateways
+description: Retrieves gateways assigned to the account.
+operationId: listGateways
+parameters:
+- name: locationId
+in: query
+required: false
+description: Returns gateways from one location.
+schema:
+type: string
+example: loc_3001
+responses:
+"200":
+description: Gateways were returned successfully.
+content:
+application/json:
+schema:
+$ref: "#/components/schemas/GatewaysResponse"
+"401":
+$ref: "#/components/responses/Unauthorized"
+"403":
+$ref: "#/components/responses/Forbidden"
+"500":
+$ref: "#/components/responses/InternalServerError"
+
+/gateways/{gatewayId}:
+get:
+tags:
+- Gateways
+summary: Retrieve one gateway
+description: Retrieves details for one gateway.
+operationId: getGateway
+parameters:
+- name: gatewayId
+in: path
+required: true
+description: The unique ID for the gateway.
+schema:
+type: string
+example: gtw_1042
+responses:
+"200":
+description: Gateway details were returned successfully.
+content:
+application/json:
+schema:
+$ref: "#/components/schemas/Gateway"
+"401":
+$ref: "#/components/responses/Unauthorized"
+"403":
+$ref: "#/components/responses/Forbidden"
+"404":
+$ref: "#/components/responses/NotFound"
+"500":
+$ref: "#/components/responses/InternalServerError"
+
+/locations:
+get:
+tags:
+- Locations
+summary: Retrieve locations
+description: Retrieves locations assigned to the account.
+operationId: listLocations
+responses:
+"200":
+description: Locations were returned successfully.
+content:
+application/json:
+schema:
+$ref: "#/components/schemas/LocationsResponse"
+"401":
+$ref: "#/components/responses/Unauthorized"
+"403":
+$ref: "#/components/responses/Forbidden"
+"500":
+$ref: "#/components/responses/InternalServerError"
+
+components:
+securitySchemes:
+bearerAuth:
+type: http
+scheme: bearer
+bearerFormat: API key
+description: |
+Send the API key in the Authorization header.
+
+```
+    Example: Authorization: Bearer YOUR_API_KEY
+```
+
+responses:
+BadRequest:
+description: The request is missing required information or has an invalid value.
+content:
+application/json:
+schema:
+$ref: "#/components/schemas/ErrorResponse"
+examples:
+invalidParameter:
+summary: Invalid parameter
+value:
+error:
+code: invalid_parameter
+message: The startTime value must use ISO 8601 format.
+requestId: req_20491
+
+```
+Unauthorized:
+  description: The API key is missing or invalid.
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/ErrorResponse"
+      examples:
+        missingApiKey:
+          summary: Missing API key
+          value:
+            error:
+              code: missing_api_key
+              message: The Authorization header is required.
+              requestId: req_10291
+
+Forbidden:
+  description: The API key does not have access to the requested data.
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/ErrorResponse"
+      examples:
+        accessDenied:
+          summary: Access denied
+          value:
+            error:
+              code: access_denied
+              message: The API key does not have access to this location.
+              requestId: req_10293
+
+NotFound:
+  description: The requested item was not found.
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/ErrorResponse"
+      examples:
+        notFound:
+          summary: Item not found
+          value:
+            error:
+              code: not_found
+              message: The requested sensor was not found.
+              requestId: req_30501
+
+TooManyRequests:
+  description: Too many requests were sent.
+  headers:
+    Retry-After:
+      description: Number of seconds to wait before sending another request.
+      schema:
+        type: integer
+        example: 60
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/ErrorResponse"
+      examples:
+        rateLimit:
+          summary: Rate limit exceeded
+          value:
+            error:
+              code: rate_limit_exceeded
+              message: Too many requests. Try again later.
+              requestId: req_42901
+
+InternalServerError:
+  description: Something went wrong in SensorHub Cloud.
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/ErrorResponse"
+      examples:
+        serverError:
+          summary: Server error
+          value:
+            error:
+              code: server_error
+              message: An unexpected error occurred.
+              requestId: req_50001
+```
+
+schemas:
+ReadingsResponse:
+type: object
+required:
+- data
+- pagination
+properties:
+data:
+type: array
+description: A list of sensor readings.
+items:
+$ref: "#/components/schemas/Reading"
+pagination:
+$ref: "#/components/schemas/Pagination"
+
+```
+Reading:
+  type: object
+  required:
+    - readingId
+    - sensorId
+    - gatewayId
+    - locationId
+    - type
+    - value
+    - unit
+    - timestamp
+  properties:
+    readingId:
+      type: string
+      description: The unique ID for the reading.
+      example: rdg_1001
+    sensorId:
+      type: string
+      description: The unique ID for the sensor.
+      example: sns_2481
+    gatewayId:
+      type: string
+      description: The unique ID for the gateway that sent the reading.
+      example: gtw_1042
+    locationId:
+      type: string
+      description: The unique ID for the sensor location.
+      example: loc_3001
+    type:
+      $ref: "#/components/schemas/ReadingType"
+    value:
+      type: number
+      description: The reading value.
+      example: 38.7
+    unit:
+      type: string
+      description: The unit of measure.
+      example: F
+    timestamp:
+      type: string
+      format: date-time
+      description: The date and time when the reading was recorded.
+      example: "2026-06-12T15:42:00Z"
+    batteryPercent:
+      type:
+        - integer
+        - "null"
+      minimum: 0
+      maximum: 100
+      description: The sensor battery level, shown as a percent.
+      example: 91
+    signalStrength:
+      type:
+        - integer
+        - "null"
+      description: The sensor signal strength in dBm.
+      example: -67
+
+ReadingType:
+  type: string
+  description: The type of sensor reading.
+  enum:
+    - temperature
+    - humidity
+    - water
+    - door
+    - pressure
+    - battery
+  example: temperature
+
+SensorsResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      type: array
+      description: A list of sensors.
+      items:
+        $ref: "#/components/schemas/Sensor"
+
+Sensor:
+  type: object
+  required:
+    - sensorId
+    - name
+    - type
+    - status
+    - locationId
+  properties:
+    sensorId:
+      type: string
+      description: The unique ID for the sensor.
+      example: sns_2481
+    name:
+      type: string
+      description: The sensor name.
+      example: Cooler Temperature 1
+    type:
+      $ref: "#/components/schemas/ReadingType"
+    status:
+      $ref: "#/components/schemas/DeviceStatus"
+    locationId:
+      type: string
+      description: The unique ID for the sensor location.
+      example: loc_3001
+    gatewayId:
+      type:
+        - string
+        - "null"
+      description: The gateway that last received data from the sensor.
+      example: gtw_1042
+    lastReadingAt:
+      type:
+        - string
+        - "null"
+      format: date-time
+      description: The last time the sensor reported a reading.
+      example: "2026-06-12T15:42:00Z"
+    batteryPercent:
+      type:
+        - integer
+        - "null"
+      minimum: 0
+      maximum: 100
+      description: The sensor battery level, shown as a percent.
+      example: 91
+
+GatewaysResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      type: array
+      description: A list of gateways.
+      items:
+        $ref: "#/components/schemas/Gateway"
+
+Gateway:
+  type: object
+  required:
+    - gatewayId
+    - name
+    - status
+    - locationId
+    - connectionType
+  properties:
+    gatewayId:
+      type: string
+      description: The unique ID for the gateway.
+      example: gtw_1042
+    name:
+      type: string
+      description: The gateway name.
+      example: Kitchen Cooler Gateway
+    status:
+      $ref: "#/components/schemas/DeviceStatus"
+    locationId:
+      type: string
+      description: The unique ID for the gateway location.
+      example: loc_3001
+    connectionType:
+      type: string
+      description: The gateway internet connection type.
+      enum:
+        - ethernet
+        - wifi
+        - cellular
+      example: ethernet
+    lastCheckInAt:
+      type:
+        - string
+        - "null"
+      format: date-time
+      description: The last time the gateway checked in.
+      example: "2026-06-12T15:43:00Z"
+    firmwareVersion:
+      type:
+        - string
+        - "null"
+      description: The gateway firmware version.
+      example: 3.4.1
+
+LocationsResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      type: array
+      description: A list of locations.
+      items:
+        $ref: "#/components/schemas/Location"
+
+Location:
+  type: object
+  required:
+    - locationId
+    - name
+  properties:
+    locationId:
+      type: string
+      description: The unique ID for the location.
+      example: loc_3001
+    name:
+      type: string
+      description: The location name.
+      example: Walk-In Cooler
+    description:
+      type:
+        - string
+        - "null"
+      description: A short description of the location.
+      example: Main kitchen cold storage area
+
+DeviceStatus:
+  type: string
+  description: The current device status.
+  enum:
+    - online
+    - offline
+    - pending
+    - warning
+  example: online
+
+Pagination:
+  type: object
+  required:
+    - limit
+    - nextCursor
+  properties:
+    limit:
+      type: integer
+      description: The number of results requested.
+      example: 10
+    nextCursor:
+      type:
+        - string
+        - "null"
+      description: The cursor used to get the next page of results.
+      example: eyJwYWdlIjoyfQ
+
+ErrorResponse:
+  type: object
+  required:
+    - error
+  properties:
+    error:
+      $ref: "#/components/schemas/Error"
+
+Error:
+  type: object
+  required:
+    - code
+    - message
+    - requestId
+  properties:
+    code:
+      type: string
+      description: A short error code.
+      enum:
+        - missing_api_key
+        - invalid_api_key
+        - expired_api_key
+        - access_denied
+        - invalid_request
+        - missing_parameter
+        - invalid_parameter
+        - invalid_date_range
+        - not_found
+        - duplicate_resource
+        - rate_limit_exceeded
+        - server_error
+        - service_unavailable
+      example: invalid_parameter
+    message:
+      type: string
+      description: A short explanation of the problem.
+      example: The startTime value must use ISO 8601 format.
+    requestId:
+      type: string
+      description: A unique ID for the request.
+      example: req_20491
+```
