@@ -8,30 +8,28 @@ description: |
 The SensorHub API is a fictional REST API for retrieving sensor readings,
 checking device status, and connecting SensorHub Cloud data to other systems.
 
-```
 This OpenAPI file is part of a fictional documentation portfolio project.
 It does not describe a real product or service.
-```
 
 servers:
 
-* url: https://api.sensorhub.example.com/v1
-  description: Production API server
+url: https://api.sensorhub.example.com/v1
+description: Production API server
 
 security:
 
-* bearerAuth: []
+bearerAuth: []
 
 tags:
 
-* name: Readings
-  description: Retrieve sensor reading data.
-* name: Sensors
-  description: Retrieve sensor details.
-* name: Gateways
-  description: Retrieve gateway details.
-* name: Locations
-  description: Retrieve location details.
+name: Readings
+description: Retrieve sensor reading data.
+name: Sensors
+description: Retrieve sensor details.
+name: Gateways
+description: Retrieve gateway details.
+name: Locations
+description: Retrieve location details.
 
 paths:
 /readings:
@@ -42,7 +40,6 @@ summary: Retrieve sensor readings
 description: |
 Retrieves sensor readings from SensorHub Cloud.
 
-```
     Use query parameters to filter readings by sensor, gateway, location,
     sensor type, or date range.
   operationId: listReadings
@@ -154,7 +151,6 @@ Retrieves sensor readings from SensorHub Cloud.
       $ref: "#/components/responses/TooManyRequests"
     "500":
       $ref: "#/components/responses/InternalServerError"
-```
 
 /sensors:
 get:
@@ -312,9 +308,7 @@ bearerFormat: API key
 description: |
 Send the API key in the Authorization header.
 
-```
     Example: Authorization: Bearer YOUR_API_KEY
-```
 
 responses:
 BadRequest:
@@ -332,7 +326,6 @@ code: invalid_parameter
 message: The startTime value must use ISO 8601 format.
 requestId: req_20491
 
-```
 Unauthorized:
   description: The API key is missing or invalid.
   content:
@@ -413,7 +406,6 @@ InternalServerError:
               code: server_error
               message: An unexpected error occurred.
               requestId: req_50001
-```
 
 schemas:
 ReadingsResponse:
@@ -430,7 +422,6 @@ $ref: "#/components/schemas/Reading"
 pagination:
 $ref: "#/components/schemas/Pagination"
 
-```
 Reading:
   type: object
   required:
@@ -715,4 +706,3 @@ Error:
       type: string
       description: A unique ID for the request.
       example: req_20491
-```
